@@ -63,7 +63,7 @@ class ArticleController
 
         if($method === 'POST'){
             $author=$this->authorRepository->findByID((int)$payload['author']) ?? null;
-            if($author){
+            if(!$author){
                 http_response_code(400);
                 echo json_encode(['error'=>'Invalid Author']);
                 return;
@@ -73,7 +73,7 @@ class ArticleController
                 (int)null,
                 $payload['title'],
                 $payload['description'],
-                new \DateTime( $payload['title'] ?? 'now'),
+                new \DateTime( $payload['publication_date'] ?? 'now'),
                 $author,
                 $payload['doi'],
                 $payload['abstract'],
@@ -86,6 +86,61 @@ class ArticleController
 
             echo json_encode(['Success' =>$this->articleRepository -> create($article)]);
         }
+
+        
+        if($method === 'PUT'){
+            $id = (int)($payload['id'] ?? 0);
+            $existing = $this->articleRepository->findByID($id);
+            // Verificar que el articulo exista
+            if(!$existing){
+                http_response_code(404);
+                echo json_encode(['error'=>'Article not found']);
+                return;
+            }
+            // Verificar que el autor exista
+            if(isset($payload['author'])){
+                $author = $this->authorRepository->findByID((int)$payload['author']);
+                if ($author) $existing->setAuthor($author);
+            }
+            // Actualizar campos si están presentes
+            if (isset($payload['title'])) $existing->setTitle($payload['title']);
+            if (isset($payload['description'])) $existing->setDescription($payload['description']);
+            if (isset($payload['publication_date'])) {
+                $existing->setPublicationDate(new \DateTime($payload['publication_date']));
+            }
+            if (isset($payload['doi'])) $existing->setDoi($payload['doi']);
+            if (isset($payload['abstract'])) $existing->setAbstract($payload['abstract']);
+            if (isset($payload['keywords'])) $existing->setKeywords($payload['keywords']);
+            if (isset($payload['indexacion'])) $existing->setIndexacion($payload['indexacion']);
+            if (isset($payload['magazine'])) $existing->setMagazine($payload['magazine']);
+            if (isset($payload['area'])) $existing->setArea($payload['area']);
+
+            // Ejecutar la actualización
+            $success = $this->articleRepository->update($existing);
+            if ($success) {
+                echo json_encode(['Success'=>'Articulo actualizado correctamente']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['error'=>'Error al actualizar el articulo']);
+            }
+            return;
+        }
+
+        if($method === 'DELETE'){
+            $id = (int)($payload['id'] ?? 0);
+            $success = $this->articleRepository->delete($id);
+            if ($success) {
+                echo json_encode(['Success'=>'Articulo eliminado correctamente']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['error'=>'Error al eliminar el articulo']);
+            }
+            return;
+        }
+
+        http_response_code(405);
+        echo json_encode(['error'=>'Metodo no permitido']);
+ 
         
     }
 }

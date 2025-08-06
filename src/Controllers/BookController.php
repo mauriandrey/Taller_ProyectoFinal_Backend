@@ -57,10 +57,10 @@ class BookController
             return;
         }
 
-        $payLoad = json_decode(file_get_contents('php://input'), true);
+        $payload = json_decode(file_get_contents('php://input'), true);
 
         if ($method === 'POST') {
-            $author = $this->authorRepository->findById((int)$payLoad['author']) ?? 0;
+            $author = $this->authorRepository->findById((int)$payload['author']) ?? 0;
             if (!$author) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Autor no encontrado']);
@@ -69,51 +69,47 @@ class BookController
 
             $book = new Book(
                 0,
-                $payLoad['title'],
-                $payLoad['description'],
-                new \DateTime($payLoad['publication_date'] ?? 'now'),
+                $payload['title'],
+                $payload['description'],
+                new \DateTime($payload['publication_date'] ?? 'now'),
                 $author,
-                $payLoad['isbn'],
-                $payLoad['gender'],
-                $payLoad['edition']
+                $payload['isbn'],
+                $payload['gender'],
+                $payload['edition']
             );
 
             echo json_encode(['Success' => $this->bookRepository->create($book)]);
 
         }
 
-        if($method === 'PUT'){
-            $id =(int)$payLoad['id'] ?? 0;
-            $existting = $this->bookRepository->findByID($id);
-            //Verificar que el libro exista
-            if(!$existting){
+        if ($method === 'PUT'){
+            $id = (int)$payload['id'] ?? 0;
+            $existing = $this->bookRepository->findById($id);
+            if (!$existing){
                 http_response_code(404);
-                echo json_encode(['error'=>'Book not found']);
+                echo json_encode(['error' => 'Libro no encontrado']);
                 return;
             }
-            //Verificar que el autor exista
-            if(isset($payLoad['author'])){
+
+            if (isset($payLoad['author'])){
                 $author = $this->authorRepository->findById((int)$payLoad['author']);
-                if ($author) $existting->setAuthor($author);
+                if ($author) $existing->setAuthor($author);
             }
 
-            //verificar que los campos esten llenos
-
-            if (isset($payLoad['title'])) $existting->setTitle($payLoad['title']);
-            if (isset($payLoad['description'])) $existting->setTitle($payLoad['description']);
+            if (isset($payLoad['title'])) $existing->setTitle($payLoad['title']);
+            if (isset($payLoad['description'])) $existing->setDescription($payLoad['description']);
             if (isset($payLoad['publication_date'])) {
-                 $existting->setPublicationDate( new \DateTime ($payLoad['publication_date']));
-                }
-            if (isset($payLoad['isbn'])) $existting->setIsbn($payLoad['isbn']);
-            if (isset($payLoad['gender'])) $existting->setGender($payLoad['gender']);
-            if (isset($payLoad['edition'])) $existting->setEdition($payLoad['edition']);
-
-
-
+                $existing->setPublicationDate(new \DateTime($payLoad['publication_date']));
+            }
+            if (isset($payLoad['isbn'])) $existing->setIsbn($payLoad['isbn']);
+            if (isset($payLoad['gender'])) $existing->setGender($payLoad['gender']);
+            if (isset($payLoad['edition'])) $existing->setEdition($payLoad['edition']);
+            echo json_encode(['Success' => $this->bookRepository->update($existing)]);
+            return;
         }
 
         if($method === 'DELETE'){
-            echo json_encode(['Success'=> $this->bookRepository->delete((int)$payLoad['id'] ?? 0)]);
+            echo json_encode(['Success'=> $this->bookRepository->delete((int)$payload['id'] ?? 0)]);
         }
 
         http_response_code(405);

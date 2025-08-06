@@ -21,7 +21,7 @@ $books = $repository->findAll();
 $articles = $repositoryAr->findAll();
 $autors = $repositoryAut->findALL();
 
-/*
+
 echo "LISTA DE LIBROS \n";
 foreach ($books as $book) {
     echo "Publication ID:".$book->getId().PHP_EOL;
@@ -151,7 +151,6 @@ if ($createArticle) {
     echo "Error al crear el artículo.\n";
 }
 
-*/
 
 
 // Probar Update Book
@@ -172,7 +171,7 @@ if ($updateBook) {
     echo "Error al actualizar el libro.\n";
 }
 
-/*
+
 // Probar Delete Book
 $deleteBook = $repository->delete(73); // ID existente
 if ($deleteBook) {
@@ -238,4 +237,3 @@ if ($deleteArticle) {
     echo "Error al eliminar el artículo.\n";
 }
 
-*/

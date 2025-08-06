@@ -66,5 +66,48 @@ class AuthorController
             echo json_encode(['Success' =>$this->authorRepository -> create($author)]);
         }
         
+        if($method === 'PUT'){
+            $id = (int)($payload['id'] ?? 0);
+            $existing = $this->authorRepository->findByID($id);
+            // Verificar que el autor exista
+            if(!$existing){
+                http_response_code(404);
+                echo json_encode(['error'=>'Author not found']);
+                return;
+            }
+            // Actualizar campos si están presentes
+            if (isset($payload['first_name'])) $existing->setFirstName($payload['first_name']);
+            if (isset($payload['last_name'])) $existing->setLastName($payload['last_name']);
+            if (isset($payload['username'])) $existing->setUsername($payload['username']);
+            if (isset($payload['email'])) $existing->setEmail($payload['email']);
+            if (isset($payload['password'])) $existing->setPassword($payload['password']);
+            if (isset($payload['orcid'])) $existing->setOrcid($payload['orcid']);
+            if (isset($payload['affiliation'])) $existing->setAffiliation($payload['affiliation']);
+
+            // Ejecutar la actualización
+            $success = $this->authorRepository->update($existing);
+            if ($success) {
+                echo json_encode(['Success'=>'Autor actualizado correctamente']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['error'=>'Error al actualizar el autor']);
+            }
+            return;
+        }
+
+        if($method === 'DELETE'){
+            $id = (int)($payload['id'] ?? 0);
+            $success = $this->authorRepository->delete($id);
+            if ($success) {
+                echo json_encode(['Success'=>'Autor eliminado correctamente']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['error'=>'Error al eliminar el autor']);
+            }
+            return;
+        }
+
+        http_response_code(405);
+        echo json_encode(['error'=>'Metodo no permitido']);
     }
 }
